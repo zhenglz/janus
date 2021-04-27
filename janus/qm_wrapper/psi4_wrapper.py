@@ -88,6 +88,7 @@ class Psi4Wrapper(QMWrapper):
         """
         try:
             self.set_up_psi4()
+            print("Method", self.method)
             self.energy, self.wavefunction = psi4.energy(self.method,
                                                         return_wfn=True)
 
@@ -95,6 +96,7 @@ class Psi4Wrapper(QMWrapper):
             self.gradient = np.asarray(G)
         except:
             self.set_up_psi4(be_quiet=False)
+            print("Method", self.method)
             self.energy, self.wavefunction = psi4.energy(self.method,
                                                         return_wfn=True)
 
@@ -131,24 +133,36 @@ class Psi4Wrapper(QMWrapper):
         # Supress print out
         if be_quiet is True:
             psi4.core.be_quiet()
-        
-        psi4.set_options(self.qm_param)
+       
+        #print("GEO", self.qm_geometry) 
+        print("QM Params", self.qm_param)
+        params = {}
+        for k in self.qm_param.keys():
+            if "sys_" not in k:
+                params[k] = self.qm_param[k]
+        self.qm_param = params
 
-        psi4_geom = '\n' + str(self.charge) + ' ' + str(self.multiplicity) + '\n '
+        print("QM Params", self.qm_param)
+        psi4.set_options(self.qm_param, True)
+
+        psi4_geom = '\n' + str(self.charge ) + ' ' + str(self.multiplicity) + '\n '
         psi4_geom += self.qm_geometry
         psi4_geom += 'no_reorient \n'
         psi4_geom += 'no_com \n '
-        #print(psi4_geom)
+        print(psi4_geom)
 
         # make sure this is in angstroms
         mol = psi4.geometry(psi4_geom)
+        print("PSI4 GEO done")
 
         if self.external_charges is not None:
             Chrgfield = psi4.QMMM()
+            print("external charges", self.external_charges)
             for charge in self.external_charges:
                 Chrgfield.extern.addCharge(charge[0], charge[1], charge[2], charge[3])
             psi4.core.set_global_option_python('EXTERN', Chrgfield.extern)
 
+        print("Psi4 params set up done")
             
     def compute_scf_charges(self, charge_method='MULLIKEN_CHARGES'):
         """

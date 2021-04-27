@@ -98,8 +98,8 @@ class QMMM(object):
         self.systems[self.run_ID]['kinetic_energy'] = system.entire_sys['kinetic']
 
         #if self.run_ID % 10 == 0:
-        print('!', self.run_ID, self.systems[self.run_ID]['qmmm_energy'] + self.systems[self.run_ID]['kinetic_energy'])
-            # add kinetic in total qmmm_energy
+        print('! total energy', self.run_ID, self.systems[self.run_ID]['qmmm_energy'] + self.systems[self.run_ID]['kinetic_energy'])
+        # add kinetic in total qmmm_energy
 
         # updates current step count
         self.run_ID += 1
