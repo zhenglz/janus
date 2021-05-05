@@ -7,6 +7,7 @@ import numpy as np
 import pickle
 from copy import deepcopy
 
+
 class OpenMMWrapper(MMWrapper):
     """
     A MM wrapper class that calls OpenMM
@@ -19,6 +20,7 @@ class OpenMMWrapper(MMWrapper):
     sys_info : str 
         A string with the filename or a list with multiple filenames 
         that contain position and topology information. Default is None.
+        If you use amber format files, only .prmtop and .inpcrd files.
     sys_info_format : str 
         A str describing what kind of input is contained in sys_info. Default is pdb.
         Possible values also include Amber and Gromacs.
@@ -118,6 +120,7 @@ class OpenMMWrapper(MMWrapper):
 
         self.positions = None
 
+        # parse the input files into topology and coordinates
         self.convert_input()
 
     def initialize(self, embedding_method):
@@ -312,7 +315,10 @@ class OpenMMWrapper(MMWrapper):
         
         return OpenMMWrapper.get_state_info(self.main_simulation, main_info=True)
 
-    def compute_info(self, topology, positions, include_coulomb='all', initialize=False, return_system=False, return_simulation=False, link_atoms=None, minimize=False):
+    def compute_info(self, topology, positions,
+                     include_coulomb='all', initialize=False,
+                     return_system=False, return_simulation=False,
+                     link_atoms=None, minimize=False):
         """
         Gets information about a system. 
 
@@ -388,7 +394,8 @@ class OpenMMWrapper(MMWrapper):
             return state
 
 
-    def create_openmm_system(self, topology, include_coulomb='all', link_atoms=None, initialize=False):
+    def create_openmm_system(self, topology, include_coulomb='all',
+                             link_atoms=None, initialize=False):
         """
         Calls OpenMM to create an OpenMM System object give a topology,
         forcefield, and other parameters specified in the instantiation parameters.
@@ -444,8 +451,7 @@ class OpenMMWrapper(MMWrapper):
                                             flexibleConstraints=self.flexibleConstraints,
                                             ignoreExternalBonds=self.ignoreExternalBonds)
 
-        elif (self.system_info_format == 'Amber' and self.use_pdb is False):
-
+        elif (self.system_info_format in ['Amber', 'amber'] and self.use_pdb is False):
             if topology.getNumAtoms() != self.topology.getNumAtoms():
                 print('reading topology not the same')
                 forcefield = deepcopy(self.forcefield)
@@ -464,6 +470,8 @@ class OpenMMWrapper(MMWrapper):
                                             removeCMMotion=self.removeCMMotion)
             print('new system particles')
             print(openmm_system.getNumParticles())
+        else:
+            openmm_system = None
 
         if initialize is True:                                             # this is for the initialization of the entire system
             self.qmmm_force = OM.CustomExternalForce("-x*fx-y*fy-z*fz")    # define a custom force for adding qmmm gradients
@@ -476,7 +484,8 @@ class OpenMMWrapper(MMWrapper):
             
             openmm_system.addForce(self.qmmm_force)
 
-            self.main_charges = [openmm_system.getForce(3).getParticleParameters(i)[0]/OM_unit.elementary_charge for i in range(openmm_system.getNumParticles())]
+            self.main_charges = [openmm_system.getForce(3).getParticleParameters(i)[0]/OM_unit.elementary_charge
+                                 for i in range(openmm_system.getNumParticles())]
 
         # If in electrostatic embedding scheme need to get a system without coulombic interactions
         if include_coulomb == 'none':
@@ -487,7 +496,7 @@ class OpenMMWrapper(MMWrapper):
             self.set_charge_zero(openmm_system, link_atoms)
 
         if include_coulomb == 'only':
-        # Remove Bond, Angle, and Torsion forces to leave only nonbonded forces
+            # Remove Bond, Angle, and Torsion forces to leave only nonbonded forces
             for i in range(openmm_system.getNumForces()):             
                 if type(openmm_system.getForce(0)) is not OM.NonbondedForce:     
                     openmm_system.removeForce(0)                              
@@ -878,7 +887,6 @@ class OpenMMWrapper(MMWrapper):
         
         return topology, positions
 
-
     def convert_input(self):
         """
         Converts inputs to OpenMM readable topologies and positions.
@@ -897,7 +905,7 @@ class OpenMMWrapper(MMWrapper):
             self.positions = self.pdb.positions
             self.PeriodicBoxVector = self.topology.getPeriodicBoxVectors()
 
-        elif self.system_info_format == 'Amber':
+        elif self.system_info_format in ['Amber', 'amber']:
             for fil in self.system_info:
                 if fil.endswith('prmtop'):
                     self.forcefield = OM_app.AmberPrmtopFile(fil)
@@ -913,7 +921,7 @@ class OpenMMWrapper(MMWrapper):
                     self.positions = self.inpcrd.positions
                     self.PeriodicBoxVector = self.inpcrd.boxVectors
 
-        elif self.system_info_format == 'Gromacs':
+        elif self.system_info_format in ['Gromacs', 'gromacs']:
             for fil in self.system_info:
                 if 'gro' in fil:
                     self.pdb = OM_app.GromacsGroFile(fil)

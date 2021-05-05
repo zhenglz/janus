@@ -210,7 +210,6 @@ class AQMMM(ABC, QMMM):
             raise ValueError("{} partition not implemented at this time".format(partition_scheme))
 
         return wrapper
-        
                     
     def find_buffer_zone(self):
 

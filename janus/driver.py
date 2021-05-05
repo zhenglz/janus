@@ -3,7 +3,8 @@ This is the qmmm driver module
 """
 import pickle
 from janus import Initializer
-    
+
+
 def run_janus(filename='input.json'):
     """
     Drives the janus program.
@@ -29,6 +30,7 @@ def run_janus(filename='input.json'):
         run_simulation(ll_wrapper, qmmm_wrapper)
     else:
         run_single_point(ll_wrapper, qmmm_wrapper)
+
 
 def run_simulation(md_sim_wrapper, qmmm_wrapper):
     """
@@ -62,7 +64,7 @@ def run_simulation(md_sim_wrapper, qmmm_wrapper):
         # getting it on the correct one
         md_sim_wrapper.take_updated_step(force=forces)
 
-    print('QMMM finished')
+    print('QMMM finished.')
 
     md_sim_wrapper.take_step(md_sim_wrapper.end_steps)
 

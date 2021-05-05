@@ -3,6 +3,7 @@ import numpy as np
 import mdtraj as md
 from janus.system import System
 
+
 class QMMM(object):
     """
     QMMM class for QMMM computations
