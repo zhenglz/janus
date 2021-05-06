@@ -760,7 +760,7 @@ class OpenMMWrapper(MMWrapper):
         """
 
         if self.return_system is True: 
-            OM_app.PDBFile.writeFile(info['topology'], info['positions'], open(self.return_system_filename, 'w'))
+            OM_app.PDBFile.writeqmmm_stepsFile(info['topology'], info['positions'], open(self.return_system_filename, 'w'))
  
 
     def create_modeller(self, atoms, keep_atoms=False):
